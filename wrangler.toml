@@ -1,0 +1,6 @@
+name = "aurral-metadata-provider"
+main = "src/worker.ts"
+compatibility_date = "2026-02-20"
+compatibility_flags = ["nodejs_compat"]
+
+d1_databases = [{ binding = "DB", database_name = "aurral_metadata", database_id = "REPLACE_WITH_ID" }]

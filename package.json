@@ -1,0 +1,26 @@
+{
+  "name": "aurral-metadata-provider",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "wrangler dev src/worker.ts",
+    "deploy": "wrangler deploy src/worker.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "ingest": "tsx scripts/ingest.ts",
+    "build:weekly": "tsx scripts/build-weekly.ts",
+    "validate": "tsx scripts/validate.ts"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.7.0",
+    "pg": "^8.12.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.20250218.0",
+    "@types/better-sqlite3": "^7.6.9",
+    "@types/node": "^22.10.2",
+    "@types/pg": "^8.11.10",
+    "tsx": "^4.7.0",
+    "typescript": "^5.7.3",
+    "wrangler": "^3.99.0"
+  }
+}
