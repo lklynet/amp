@@ -1,0 +1,11 @@
+services:
+  aurral-updater:
+    image: ghcr.io/lklynet/amp:latest
+    environment:
+      EMBEDDED_PG: "true"
+      SCHEDULE_CRON: "0 3 * * 1"
+      MB_DUMP_URL: "https://musicbrainz.org/pub/musicbrainz/data/mbdump/mbdump.tar.bz2"
+      D1_DATABASE: "${D1_DATABASE}"
+      D1_DATABASE_ID: "${D1_DATABASE_ID}"
+    volumes:
+      - ./data:/data
