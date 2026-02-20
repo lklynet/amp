@@ -57,6 +57,10 @@ if [[ -n "$MB_DUMP_URL" ]]; then
     rm -f "$DUMP_FILE"
     curl -L "$MB_DUMP_URL" -o "$DUMP_FILE"
   fi
+  if ! bzip2 -t "$DUMP_FILE" >/dev/null 2>&1; then
+    echo "Downloaded file is not a valid bzip2 archive. Check MB_DUMP_URL."
+    exit 1
+  fi
   EXTRACT_DIR="$WORK_DIR/mbdump"
   rm -rf "$EXTRACT_DIR"
   mkdir -p "$EXTRACT_DIR"
