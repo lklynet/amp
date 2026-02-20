@@ -14,6 +14,7 @@ PGUSER="${PGUSER:-postgres}"
 PGDB="${PGDB:-musicbrainz}"
 SCHEDULE_CRON="${SCHEDULE_CRON:-}"
 PG_BIN_DIR="${PG_BIN_DIR:-}"
+PG_STARTED="false"
 
 run_once() {
 if [[ "$EMBEDDED_PG" == "true" ]]; then
@@ -33,6 +34,7 @@ if [[ "$EMBEDDED_PG" == "true" ]]; then
     su - postgres -c "$PG_BIN_DIR/initdb -D $PGDATA"
   fi
   su - postgres -c "$PG_BIN_DIR/pg_ctl -D $PGDATA -o '-F -p $PGPORT -h 127.0.0.1' -w start"
+  PG_STARTED="true"
   MB_PG_ADMIN_URL="postgresql://$PGUSER@127.0.0.1:$PGPORT/postgres"
   MB_PG_DB_NAME="$PGDB"
   MB_PG_URL="postgresql://$PGUSER@127.0.0.1:$PGPORT/$PGDB"
@@ -70,16 +72,22 @@ if [[ -n "$MB_DUMP_URL" ]]; then
     fi
     MB_DUMP_URL="$BASE_URL/$LATEST_DIR/mbdump.tar.bz2"
   fi
+  echo "Resolved MB_DUMP_URL=$MB_DUMP_URL"
   mkdir -p "$WORK_DIR"
   DUMP_FILE="${MB_DUMP_FILE:-$WORK_DIR/mbdump.tar.bz2}"
   if [[ "${FORCE_DOWNLOAD:-false}" == "true" || ! -f "$DUMP_FILE" ]]; then
     rm -f "$DUMP_FILE"
     echo "Downloading $MB_DUMP_URL"
-    curl -fL "$MB_DUMP_URL" -o "$DUMP_FILE"
+    curl -fL --retry 3 --retry-delay 5 "$MB_DUMP_URL" -o "$DUMP_FILE"
   fi
   if ! bzip2 -t "$DUMP_FILE" >/dev/null 2>&1; then
-    echo "Downloaded file is not a valid bzip2 archive. Check MB_DUMP_URL."
-    exit 1
+    echo "Downloaded file is not a valid bzip2 archive. Redownloading."
+    rm -f "$DUMP_FILE"
+    curl -fL --retry 3 --retry-delay 5 "$MB_DUMP_URL" -o "$DUMP_FILE"
+    if ! bzip2 -t "$DUMP_FILE" >/dev/null 2>&1; then
+      echo "Downloaded file is not a valid bzip2 archive. Check MB_DUMP_URL."
+      exit 1
+    fi
   fi
   EXTRACT_DIR="$WORK_DIR/mbdump"
   rm -rf "$EXTRACT_DIR"
@@ -114,6 +122,14 @@ if [[ "$EMBEDDED_PG" == "true" ]]; then
   su - postgres -c "$PG_BIN_DIR/pg_ctl -D $PGDATA -w stop"
 fi
 }
+
+cleanup() {
+  if [[ "$EMBEDDED_PG" == "true" && "$PG_STARTED" == "true" ]]; then
+    su - postgres -c "$PG_BIN_DIR/pg_ctl -D $PGDATA -m fast -w stop" || true
+  fi
+}
+
+trap cleanup EXIT
 
 if [[ -n "$SCHEDULE_CRON" ]]; then
   echo "$SCHEDULE_CRON /app/scripts/updater.sh" > /etc/cron.d/aurral-updater
