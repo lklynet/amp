@@ -37,7 +37,7 @@ The updater runs once on startup and then weekly if `SCHEDULE_CRON` is set.
 Required environment variables:
 - `D1_DATABASE`
 - `D1_DATABASE_ID`
-- `MB_DUMP_URL` (use `https://data.metabrainz.org/pub/musicbrainz/data/mbdump/mbdump.tar.bz2`)
+- `MB_DUMP_URL` (use `https://data.metabrainz.org/pub/musicbrainz/data/fullexport/`)
 - `EMBEDDED_PG=true`
 
 Optional:

@@ -4,7 +4,7 @@ services:
     environment:
       EMBEDDED_PG: "true"
       SCHEDULE_CRON: "0 3 * * 1"
-      MB_DUMP_URL: "https://data.metabrainz.org/pub/musicbrainz/data/mbdump/mbdump.tar.bz2"
+      MB_DUMP_URL: "https://data.metabrainz.org/pub/musicbrainz/data/fullexport/"
       D1_DATABASE: "${D1_DATABASE}"
       D1_DATABASE_ID: "${D1_DATABASE_ID}"
     volumes:

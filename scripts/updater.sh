@@ -51,6 +51,15 @@ if [[ -n "$MB_DUMP_URL" || -n "$MB_DUMP_SQL" ]]; then
 fi
 
 if [[ -n "$MB_DUMP_URL" ]]; then
+  if [[ "$MB_DUMP_URL" == *"/fullexport" || "$MB_DUMP_URL" == *"/fullexport/" ]]; then
+    BASE_URL="${MB_DUMP_URL%/}"
+    LATEST_DIR="$(curl -fsSL "$BASE_URL/LATEST" | tr -d '\r\n' || true)"
+    if [[ -z "$LATEST_DIR" ]]; then
+      echo "Unable to resolve latest fullexport directory from $BASE_URL/LATEST"
+      exit 1
+    fi
+    MB_DUMP_URL="$BASE_URL/$LATEST_DIR/mbdump.tar.bz2"
+  fi
   mkdir -p "$WORK_DIR"
   DUMP_FILE="${MB_DUMP_FILE:-$WORK_DIR/mbdump.tar.bz2}"
   if [[ "${FORCE_DOWNLOAD:-false}" == "true" || ! -f "$DUMP_FILE" ]]; then
