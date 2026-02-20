@@ -13,9 +13,21 @@ PGPORT="${PGPORT:-5432}"
 PGUSER="${PGUSER:-postgres}"
 PGDB="${PGDB:-musicbrainz}"
 SCHEDULE_CRON="${SCHEDULE_CRON:-}"
+PG_BIN_DIR="${PG_BIN_DIR:-}"
 
 run_once() {
 if [[ "$EMBEDDED_PG" == "true" ]]; then
+  if [[ -z "$PG_BIN_DIR" ]]; then
+    PG_BIN_DIR="$(dirname "$(command -v initdb 2>/dev/null || true)")"
+  fi
+  if [[ -z "$PG_BIN_DIR" || "$PG_BIN_DIR" == "." ]]; then
+    PG_BIN_DIR="$(ls -d /usr/lib/postgresql/*/bin 2>/dev/null | head -n 1 || true)"
+  fi
+  if [[ -z "$PG_BIN_DIR" ]]; then
+    echo "PostgreSQL binaries not found. Set PG_BIN_DIR or install postgresql server."
+    exit 1
+  fi
+  export PATH="$PG_BIN_DIR:$PATH"
   mkdir -p "$PGDATA" "$WORK_DIR"
   chown -R postgres:postgres "$PGDATA" "$WORK_DIR"
   if [[ ! -s "$PGDATA/PG_VERSION" ]]; then
